@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Círculos Trigonométricos — Seno e Cosseno</title>
+<style>
+:root{
+  --bg:#7665c9;--bg-deep:#51429b;--card:#111a35;--card-soft:#172344;
+  --line:#3c4b78;--text:#fbf7ff;--muted:#c4c9e8;
+  --blue:#38bdf8;--pink:#f472b6;--yellow:#facc15;--mint:#58e1d2;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;min-height:100vh;
+  background:radial-gradient(ellipse at 15% 0%,#a69af0 0%,transparent 38%),
+             linear-gradient(135deg,#7564c8 0%,#6554b4 48%,#4d418e 100%);
+  color:var(--text);font-family:Inter,Arial,sans-serif;line-height:1.6;
+}
+main{max-width:1450px;margin:auto;padding:clamp(16px,3vw,34px)}
+h1{font-size:clamp(1.8rem,3.4vw,2.7rem);line-height:1.15;margin:0 0 10px;letter-spacing:-.04em}
+h2{font-size:clamp(1.2rem,2vw,1.55rem);line-height:1.25;margin:0 0 12px}
+h3{margin:0 0 7px;font-size:1.05rem}
+p{margin:0 0 12px}
+.intro{max-width:900px;color:#f0edff;margin:0 0 24px;font-size:1.04rem}
+.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:0 0 22px}
+.control,.card{
+  background:linear-gradient(145deg,rgba(17,26,53,.97),rgba(12,20,43,.97));
+  border:1px solid rgba(220,220,255,.17);border-radius:20px;
+  box-shadow:0 12px 32px rgba(25,15,67,.18);
+}
+.control{padding:18px}
+.control b{display:block;margin-bottom:10px}
+.control input[type=range]{width:calc(100% - 86px);accent-color:var(--pink);vertical-align:middle;cursor:pointer}
+.control input[type=number]{width:72px;padding:8px;background:#090f25;color:white;border:1px solid var(--line);border-radius:9px;font:inherit}
+.spin-controls{text-align:center;margin:0 0 24px}
+#spinButton{
+  padding:14px 28px;border:2px solid #f472b6;border-radius:14px;
+  background:linear-gradient(135deg,#f472b6,#a78bfa);color:#fff;
+  font-size:1.05rem;font-weight:bold;cursor:pointer;
+  box-shadow:0 5px 20px rgba(244,114,182,.3);
+  transition:transform .2s,box-shadow .2s;
+}
+#spinButton:hover{transform:scale(1.05);box-shadow:0 8px 25px rgba(244,114,182,.45)}
+#spinButton:active{transform:scale(.97)}
+#spinButton:disabled{opacity:.8;cursor:wait}
+.spin-controls p{color:#f0edff;margin-top:8px}
+.circles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-bottom:18px}
+.card{padding:clamp(16px,2vw,24px);margin-bottom:18px}
+.circles .card{margin:0;min-width:0}
+.card>p,.card p{color:var(--muted)}
+.circles .card h2{display:flex;align-items:center;gap:8px}
+.canvasbox{background:#070d20;border:1px solid #35446e;border-radius:16px;overflow:hidden}
+canvas{display:block;width:100%;height:auto;touch-action:none;cursor:grab}
+canvas.dragging{cursor:grabbing}
+.readout{margin-top:12px;padding:12px;border-radius:12px;background:#1b284b;text-align:center;font-size:clamp(.95rem,1.5vw,1.1rem);border:1px solid rgba(255,255,255,.07)}
+.readout b{color:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.grid>div{padding:15px;border-radius:13px;background:rgba(113,126,190,.1);border:1px solid rgba(202,211,255,.12);min-width:0}
+.quad{border-top:3px solid var(--mint)!important}
+.q1{border-top-color:#4ade80!important}.q2{border-top-color:#38bdf8!important}
+.q3{border-top-color:#f472b6!important}.q4{border-top-color:#facc15!important}
+.formula{background:#202c50;border-left:4px solid var(--yellow);padding:12px 14px;border-radius:8px;color:#fff!important;font-size:1.02rem}
+.warning{padding:12px 14px;background:rgba(250,204,21,.09);border:1px solid rgba(250,204,21,.25);border-radius:10px;color:#fff!important}
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--line);margin-top:12px}
+table{width:100%;border-collapse:collapse;min-width:540px;background:#0d1730}
+th,td{padding:11px 13px;text-align:center;border-bottom:1px solid rgba(177,190,235,.13)}
+th{background:#26345b;color:#fff;font-weight:700}
+tbody tr:nth-child(even){background:rgba(126,142,204,.08)}
+tbody tr:hover{background:rgba(244,114,182,.1)}
+ol{padding-left:24px;color:var(--muted)}
+li{padding:3px 0 3px 4px}
+section{scroll-margin-top:20px}
+@media(max-width:900px){.circles,.controls{grid-template-columns:1fr}.circles .card{min-width:0}}
+@media(max-width:560px){main{padding:12px}.card{padding:15px;border-radius:15px}.grid{grid-template-columns:1fr}.control{padding:14px}.intro{font-size:.96rem}}
+</style>
+</head>
+<body>
+<main>
+<h1>📐 Círculo Trigonométrico Interativo</h1>
+<div class="intro">Guia interativo completo de seno, cosseno, tangente, ângulos, radianos, quadrantes, sinais, valores notáveis e relações trigonométricas.</div>
+
+<div class="controls">
+  <div class="control">
+    <b>🔵 Ângulo do Seno</b>
+    <input id="sr" type="range" min="0" max="360" value="45">
+    <input id="sn" type="number" min="0" max="360" value="45"> °
+  </div>
+  <div class="control">
+    <b>🟣 Ângulo do Cosseno</b>
+    <input id="cr" type="range" min="0" max="360" value="45">
+    <input id="cn" type="number" min="0" max="360" value="45"> °
+  </div>
+</div>
+
+<div class="spin-controls">
+  <button id="spinButton" type="button">▶ Girar círculos</button>
+  <p>✨ Clique para os dois círculos completarem uma volta de 360°!</p>
+</div>
+
+<div class="circles">
+<section class="card">
+<h2>🔵 Círculo do Seno</h2><p><b>sen θ = y</b> — arraste o ponto rosa</p>
+<div class="canvasbox"><canvas id="sine" width="700" height="700"></canvas></div>
+<div class="readout">sen θ = <b id="sv">√2/2</b> &nbsp; | &nbsp; θ = <b id="sd">45°</b> = <b id="sradian">π/4</b></div>
+</section>
+
+<section class="card">
+<h2>🟣 Círculo do Cosseno</h2><p><b>cos θ = x</b> — arraste o ponto rosa</p>
+<div class="canvasbox"><canvas id="cosine" width="700" height="700"></canvas></div>
+<div class="readout">cos θ = <b id="cv">√2/2</b> &nbsp; | &nbsp; θ = <b id="cd">45°</b> = <b id="cradian">π/4</b></div>
+</section>
+</div>
+
+<section id="conceito"><div class="card">
+<h2>📚 O que é o círculo trigonométrico?</h2>
+<p>É uma circunferência de <b>raio 1</b>, centrada na origem do plano cartesiano. Ele é usado para representar ângulos e visualizar as funções trigonométricas.</p>
+<div class="grid">
+<div><h3>Coordenada x</h3><p><b>x = cos θ</b>. Por isso, o cosseno é associado ao eixo horizontal.</p></div>
+<div><h3>Coordenada y</h3><p><b>y = sen θ</b>. Por isso, o seno é associado ao eixo vertical.</p></div>
+<div><h3>Origem</h3><p>O centro é <b>(0,0)</b>.</p></div>
+<div><h3>Raio</h3><p>O raio é sempre <b>1</b>, daí o nome círculo unitário.</p></div>
+</div>
+</div></section>
+
+<section id="quadrantes"><div class="card">
+<h2>🧭 Quadrantes e sinais</h2>
+<div class="grid">
+<div class="quad q1"><h3>1º Quadrante</h3><p>0° a 90° (0 a π/2)</p><b>sen + | cos + | tan +</b></div>
+<div class="quad q2"><h3>2º Quadrante</h3><p>90° a 180° (π/2 a π)</p><b>sen + | cos − | tan −</b></div>
+<div class="quad q3"><h3>3º Quadrante</h3><p>180° a 270° (π a 3π/2)</p><b>sen − | cos − | tan +</b></div>
+<div class="quad q4"><h3>4º Quadrante</h3><p>270° a 360° (3π/2 a 2π)</p><b>sen − | cos + | tan −</b></div>
+</div>
+<p class="warning">⚠️ A tangente não existe quando cos θ = 0: em 90° e 270° (π/2 e 3π/2).</p>
+</div></section>
+
+<section id="notaveis"><div class="card">
+<h2>⭐ Valores notáveis</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Graus</th><th>Radianos</th><th>sen</th><th>cos</th><th>tan</th></tr></thead>
+<tbody>
+<tr><td>0°</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+<tr><td>30°</td><td>π/6</td><td>1/2</td><td>√3/2</td><td>√3/3</td></tr>
+<tr><td>45°</td><td>π/4</td><td>√2/2</td><td>√2/2</td><td>1</td></tr>
+<tr><td>60°</td><td>π/3</td><td>√3/2</td><td>1/2</td><td>√3</td></tr>
+<tr><td>90°</td><td>π/2</td><td>1</td><td>0</td><td>indefinida</td></tr>
+<tr><td>120°</td><td>2π/3</td><td>√3/2</td><td>−1/2</td><td>−√3</td></tr>
+<tr><td>135°</td><td>3π/4</td><td>√2/2</td><td>−√2/2</td><td>−1</td></tr>
+<tr><td>150°</td><td>5π/6</td><td>1/2</td><td>−√3/2</td><td>−√3/3</td></tr>
+<tr><td>180°</td><td>π</td><td>0</td><td>−1</td><td>0</td></tr>
+<tr><td>210°</td><td>7π/6</td><td>−1/2</td><td>−√3/2</td><td>√3/3</td></tr>
+<tr><td>225°</td><td>5π/4</td><td>−√2/2</td><td>−√2/2</td><td>1</td></tr>
+<tr><td>240°</td><td>4π/3</td><td>−√3/2</td><td>−1/2</td><td>√3</td></tr>
+<tr><td>270°</td><td>3π/2</td><td>−1</td><td>0</td><td>indefinida</td></tr>
+<tr><td>300°</td><td>5π/3</td><td>−√3/2</td><td>1/2</td><td>−√3</td></tr>
+<tr><td>315°</td><td>7π/4</td><td>−√2/2</td><td>√2/2</td><td>−1</td></tr>
+<tr><td>330°</td><td>11π/6</td><td>−1/2</td><td>√3/2</td><td>−√3/3</td></tr>
+<tr><td>360°</td><td>2π</td><td>0</td><td>1</td><td>0</td></tr>
+</tbody></table></div>
+</div></section>
+
+<section id="funcoes"><div class="card">
+<h2>📈 As seis funções trigonométricas</h2>
+<div class="grid">
+<div><h3>Seno</h3><p class="formula">sen θ = cateto oposto / hipotenusa</p><p>No círculo: <b>sen θ = y</b>.</p></div>
+<div><h3>Cosseno</h3><p class="formula">cos θ = cateto adjacente / hipotenusa</p><p>No círculo: <b>cos θ = x</b>.</p></div>
+<div><h3>Tangente</h3><p class="formula">tan θ = sen θ / cos θ</p><p>Não existe quando cos θ = 0.</p></div>
+<div><h3>Cotangente</h3><p class="formula">cot θ = cos θ / sen θ</p><p>Não existe quando sen θ = 0.</p></div>
+<div><h3>Secante</h3><p class="formula">sec θ = 1 / cos θ</p><p>Não existe quando cos θ = 0.</p></div>
+<div><h3>Cossecante</h3><p class="formula">csc θ = 1 / sen θ</p><p>Não existe quando sen θ = 0.</p></div>
+</div>
+</div></section>
+
+<section id="relacoes"><div class="card">
+<h2>🧠 Relações fundamentais</h2>
+<div class="grid">
+<div><h3>Relação pitagórica</h3><p class="formula">sen²θ + cos²θ = 1</p></div>
+<div><h3>Tangente</h3><p class="formula">1 + tan²θ = sec²θ</p></div>
+<div><h3>Cotangente</h3><p class="formula">1 + cot²θ = csc²θ</p></div>
+<div><h3>Razão</h3><p class="formula">tan θ = sen θ / cos θ</p></div>
+</div>
+<h3>Periodicidade</h3>
+<p><b>sen(θ + 2π) = sen θ</b>, <b>cos(θ + 2π) = cos θ</b> e <b>tan(θ + π) = tan θ</b>.</p>
+</div></section>
+
+<section id="conversao"><div class="card">
+<h2>🔄 Graus ↔ radianos</h2>
+<div class="grid">
+<div><h3>Graus para radianos</h3><p class="formula">rad = graus × π / 180</p></div>
+<div><h3>Radianos para graus</h3><p class="formula">graus = rad × 180 / π</p></div>
+</div>
+<div class="table-wrap"><table>
+<tr><th>Graus</th><td>0°</td><td>30°</td><td>45°</td><td>60°</td><td>90°</td><td>180°</td><td>270°</td><td>360°</td></tr>
+<tr><th>Radianos</th><td>0</td><td>π/6</td><td>π/4</td><td>π/3</td><td>π/2</td><td>π</td><td>3π/2</td><td>2π</td></tr>
+</table></div>
+</div></section>
+
+<section id="simetrias"><div class="card">
+<h2>🪞 Simetrias e ângulos relacionados</h2>
+<div class="grid">
+<div><h3>2º quadrante</h3><p>Ângulo de referência: <b>180° − θ</b>.</p></div>
+<div><h3>3º quadrante</h3><p>Ângulo de referência: <b>θ − 180°</b>.</p></div>
+<div><h3>4º quadrante</h3><p>Ângulo de referência: <b>360° − θ</b>.</p></div>
+<div><h3>Ângulo negativo</h3><p>Gira no sentido horário. Ex.: −30° = 330°.</p></div>
+</div>
+<p class="formula">sen(−θ) = −sen θ<br>cos(−θ) = cos θ<br>tan(−θ) = −tan θ</p>
+</div></section>
+
+<section id="dicas"><div class="card">
+<h2>🚀 Como resolver questões usando o círculo</h2>
+<ol>
+<li>Localize o ângulo no círculo.</li>
+<li>Descubra o quadrante.</li>
+<li>Determine o sinal da função.</li>
+<li>Encontre o ângulo de referência (30°, 45° ou 60°, quando aplicável).</li>
+<li>Use o valor notável correspondente.</li>
+<li>Aplique o sinal do quadrante.</li>
+</ol>
+<h3>Exemplo: sen 150°</h3>
+<p>150° está no 2º quadrante → seno é positivo. O ângulo de referência é 180° − 150° = 30°. Portanto:</p>
+<p class="formula">sen 150° = sen 30° = 1/2</p>
+<h3>Exemplo: cos 225°</h3>
+<p>225° está no 3º quadrante → cosseno é negativo. Referência: 225° − 180° = 45°.</p>
+<p class="formula">cos 225° = −cos 45° = −√2/2</p>
+</div></section>
+</main>
+
+<script>
+const S=document.getElementById('sine'), C=document.getElementById('cosine');
+const sr=document.getElementById('sr'),sn=document.getElementById('sn'),cr=document.getElementById('cr'),cn=document.getElementById('cn');
+let sa=45, ca=45;
+
+const rad={
+0:'0',30:'π/6',45:'π/4',60:'π/3',90:'π/2',120:'2π/3',135:'3π/4',150:'5π/6',180:'π',
+210:'7π/6',225:'5π/4',240:'4π/3',270:'3π/2',300:'5π/3',315:'7π/4',330:'11π/6',360:'2π'
+};
+
+function exact(v,d){
+  const a=Math.abs(v);
+  let out;
+  if(a<0.0005) out='0';
+  else if(Math.abs(a-0.5)<0.0005) out='1/2';
+  else if(Math.abs(a-Math.SQRT1_2)<0.0005) out='√2/2';
+  else if(Math.abs(a-Math.sqrt(3)/2)<0.0005) out='√3/2';
+  else if(Math.abs(a-1)<0.0005) out='1';
+  else out=a.toFixed(3).replace('.',',');
+  return v < -0.0005 ? '−'+out : out;
+}
+function radian(d){
+  const normalized=((Math.round(d)%360)+360)%360;
+  if(rad[normalized]!==undefined)return rad[normalized];
+  return `${normalized}° × π/180`;
+}
+const labels=[0,30,45,60,90,120,135,150,180,210,225,240,270,300,315,330];
+
+function draw(canvas,d,kind){
+ const ctx=canvas.getContext('2d'), W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,R=245;
+ ctx.clearRect(0,0,W,H);ctx.fillStyle='#040c17';ctx.fillRect(0,0,W,H);
+ ctx.strokeStyle='#182e46';ctx.lineWidth=1;
+ for(let n=-2;n<=2;n++){let x=cx+n*R/2,y=cy+n*R/2;
+  ctx.beginPath();ctx.moveTo(x,45);ctx.lineTo(x,H-45);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(45,y);ctx.lineTo(W-45,y);ctx.stroke();
+ }
+ ctx.strokeStyle='#aebfd0';ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(40,cy);ctx.lineTo(W-40,cy);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(cx,40);ctx.lineTo(cx,H-40);ctx.stroke();
+ const ticks=[[1,'1'],[Math.sqrt(3)/2,'√3/2'],[Math.SQRT1_2,'√2/2'],[.5,'1/2'],[0,'0'],[-.5,'−1/2'],[-Math.SQRT1_2,'−√2/2'],[-Math.sqrt(3)/2,'−√3/2'],[-1,'−1']];
+ ctx.font='12px Arial';ctx.fillStyle='#d9e5f0';ctx.textAlign='right';
+ ticks.forEach(([v,t])=>{let y=cy-v*R;ctx.fillText(t,cx-10,y+4);});
+ ctx.strokeStyle='#aebfd0';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+ labels.forEach(dg=>{
+   const a=dg*Math.PI/180,x=cx+R*Math.cos(a),y=cy-R*Math.sin(a);
+   ctx.fillStyle='#58e1d2';ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();
+   const rr=R+58,lx=cx+rr*Math.cos(a),ly=cy-rr*Math.sin(a);
+   let tx=Math.max(45,Math.min(W-45,lx)),ty=Math.max(28,Math.min(H-24,ly));
+   ctx.strokeStyle='rgba(60,130,190,.75)';ctx.lineWidth=1;
+   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(tx,ty);ctx.stroke();
+   ctx.textAlign=Math.cos(a)>0.2?'left':Math.cos(a)<-0.2?'right':'center';
+   ctx.font='bold 12px Arial';ctx.fillStyle='#facc15';
+   ctx.fillText(radian(dg)+' = '+dg+'°',tx,ty-5);
+   ctx.font='11px Arial';ctx.fillStyle='#e7f0f8';
+   ctx.fillText('sen '+exact(Math.sin(a),dg)+'   cos '+exact(Math.cos(a),dg),tx,ty+10);
+ });
+ const a=d*Math.PI/180,x=cx+R*Math.cos(a),y=cy-R*Math.sin(a),sv=Math.sin(a),cv=Math.cos(a);
+ ctx.strokeStyle='#f472b6';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(x,y);ctx.stroke();
+ ctx.fillStyle='#f472b6';ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.fill();
+ ctx.setLineDash([8,7]);ctx.lineWidth=3;
+ if(kind==='sine'){
+   ctx.strokeStyle='#38bdf8';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,cy);ctx.stroke();
+   ctx.setLineDash([]);ctx.fillStyle='#38bdf8';ctx.font='bold 15px Arial';ctx.textAlign='left';
+   ctx.fillText('sen θ = '+exact(sv,d),x+10,(y+cy)/2);
+ }else{
+   ctx.strokeStyle='#facc15';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(cx,y);ctx.stroke();
+   ctx.setLineDash([]);ctx.fillStyle='#facc15';ctx.font='bold 15px Arial';ctx.textAlign='center';
+   ctx.fillText('cos θ = '+exact(cv,d),(x+cx)/2,y-10);
+ }
+ ctx.strokeStyle='#facc15';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,50,-a,0);ctx.stroke();
+ ctx.fillStyle='#fff';ctx.font='bold 15px Arial';ctx.textAlign='left';ctx.fillText('θ',cx+55,cy-8);
+}
+
+function updateS(v){
+ sa=Math.max(0,Math.min(360,Number(v)||0));sr.value=sa;sn.value=Math.round(sa);
+ draw(S,sa,'sine');const y=Math.sin(sa*Math.PI/180);
+ document.getElementById('sv').textContent=exact(y,sa);document.getElementById('sd').textContent=Math.round(sa)+'°';document.getElementById('sradian').textContent=radian(sa);
+}
+function updateC(v){
+ ca=Math.max(0,Math.min(360,Number(v)||0));cr.value=ca;cn.value=Math.round(ca);
+ draw(C,ca,'cosine');const x=Math.cos(ca*Math.PI/180);
+ document.getElementById('cv').textContent=exact(x,ca);document.getElementById('cd').textContent=Math.round(ca)+'°';document.getElementById('cradian').textContent=radian(ca);
+}
+sr.oninput=()=>updateS(sr.value);sn.oninput=()=>updateS(sn.value);cr.oninput=()=>updateC(cr.value);cn.oninput=()=>updateC(cn.value);
+
+function enableDrag(canvas,fn){
+ let down=false;
+ function getAngle(e){
+  const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*(canvas.width/r.width)-canvas.width/2,y=canvas.height/2-(e.clientY-r.top)*(canvas.height/r.height);
+  let d=Math.atan2(y,x)*180/Math.PI;if(d<0)d+=360;return Math.round(d);
+ }
+ canvas.addEventListener('pointerdown',e=>{if(spinning)return;down=true;canvas.classList.add('dragging');canvas.setPointerCapture(e.pointerId);fn(getAngle(e));});
+ canvas.addEventListener('pointermove',e=>{if(down)fn(getAngle(e));});
+ ['pointerup','pointercancel','lostpointercapture'].forEach(t=>canvas.addEventListener(t,()=>{down=false;canvas.classList.remove('dragging');}));
+}
+enableDrag(S,updateS);enableDrag(C,updateC);
+updateS(45);updateC(45);
+
+// Anima os dois círculos por uma volta completa e volta aos ângulos iniciais.
+const spinButton=document.getElementById('spinButton');
+let spinning=false;
+spinButton.addEventListener('click',()=>{
+  if(spinning)return;
+  spinning=true;
+  spinButton.disabled=true;
+  spinButton.textContent='🪐 Girando...';
+  const startS=sa,startC=ca,startTime=performance.now(),duration=2500;
+  function animate(now){
+    const progress=Math.min((now-startTime)/duration,1);
+    updateS(startS+360*progress);
+    updateC(startC+360*progress);
+    if(progress<1){
+      requestAnimationFrame(animate);
+    }else{
+      updateS(startS);
+      updateC(startC);
+      spinning=false;
+      spinButton.disabled=false;
+      spinButton.textContent='▶ Girar círculos';
+    }
+  }
+  requestAnimationFrame(animate);
+});
+</script>
+</body>
+</html>
